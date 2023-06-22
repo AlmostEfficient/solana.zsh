@@ -6,7 +6,13 @@ alias cbp="cargo build-bpf"
 # Deploy first .so file
 alias spd="solana program deploy (ls ./target/deploy/*.so | head -n 1)"
 # Enter name of file you want to deploy
-alias spd1="solana program deploy ./target/deploy/$1"
+spd_() {
+  if [ -z "$1" ]; then
+    echo "You must provide a filename"
+    return 1
+  fi
+  solana program deploy "./target/deploy/$1"
+}
 
 # Misc
 alias sb="solana balance"
