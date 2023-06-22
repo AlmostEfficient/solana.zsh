@@ -6,3 +6,9 @@ Copy this file over to your user folder (`~`) and add this to your `.zshrc` file
 ```bash
 source ~/solana.zsh
 ```
+
+Reload your shell with
+```bash
+source ~/.zshrc
+```
+
