@@ -2,9 +2,12 @@
 alias cbs="cargo-build-sbf"
 alias cbp="cargo build-bpf"
 
-# Deploy 
 # Deploy first .so file
-alias spd="solana program deploy (ls ./target/deploy/*.so | head -n 1)"
+alias spd='
+f() { if [ -d "./target/deploy/" ] && [ -n "$(ls -A ./target/deploy/*.so 2>/dev/null)" ]; 
+then solana program deploy $(ls ./target/deploy/*.so | head -n 1); 
+else echo "No .so files found in ./target/deploy/"; fi }; f'
+
 # Enter name of file you want to deploy
 spd_() {
   if [ -z "$1" ]; then
