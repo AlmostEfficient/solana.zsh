@@ -31,7 +31,7 @@ function build_docs() { # Build Solana docs and start local server
 	nr start
 }
 
-function suck(){  # Transfers SOL from provided keypair to saved receiver, expects byte array with brackets
+function suck(){  # Transfers SOL from provided keypair to saved keypair $(solana address), expects byte array with brackets
 
 	# Return if no input
 	if [[ -z "$1" ]]; then
@@ -39,7 +39,7 @@ function suck(){  # Transfers SOL from provided keypair to saved receiver, expec
 		return 1
 	fi
 
-		local receiver_pubkey=$(solana address)
+  local receiver_pubkey=$(solana address)
 	local sender_bytes=$1
 
 	# remove ; from input
@@ -49,14 +49,78 @@ function suck(){  # Transfers SOL from provided keypair to saved receiver, expec
 	local sender_keyfile=$(mktemp)	
 	echo $sender_bytes > $sender_keyfile
 	
-	# Log balance of keypair
+	# Get balance of entered keypair
 	local balance=$(solana balance --keypair $sender_keyfile)
 
-	# If balance is not "0 SOL", transfer all SOL to receiver
+	# If balance is not "0 SOL", transfer all SOL to receiver (output of "solana address")
 	if [[ $balance != "0 SOL" ]]; then
 		echo "Sucking $balance"
 		solana transfer --keypair $sender_keyfile $receiver_pubkey ALL
 	fi
 	
 	rm -f $sender_keyfile
+}
+
+function yoink() {   # Transfers all assets from provided keypair to saved receiver. Expects byte array with brackets.
+    if [[ -z "$1" ]]; then
+        echo "Please provide a byte array."
+        return 1
+    fi
+
+    # Check if spl-token CLI is installed
+    if ! command -v spl-token &> /dev/null; then
+        echo "Error: spl-token CLI not found. Please install it and try again."
+        return 1
+    fi
+
+    # Log the balance of the keypair
+    local sol_balance=$(solana balance)
+
+		# If empty, return
+		if [[ $sol_balance == "0 SOL" ]]; then
+			echo "No balance found for provided keypair."
+			return 1
+		fi
+
+    local receiver_pubkey=$(solana address)
+
+    # Store the original keypair path
+    local original_keypair_path=$(solana config get | grep "Keypair Path:" | awk '{print $3}')
+
+    # Create a new keypair file with the provided bytes
+    local new_keypair_path="${HOME}/new-keypair.json"
+    echo $1 > "$new_keypair_path"
+
+    # Set the new keypair as the current keypair
+    solana config set --keypair "$new_keypair_path" > /dev/null 2>&1
+	
+    # Loop through associated token accounts for the sender
+    while IFS= read -r line; do
+        if [[ -z "$line" || "$line" == "-----------------------------------------------------" ]]; then
+            continue
+        fi
+
+        local token_mint=$(echo "$line" | awk '{print $1}')
+        local balance=$(echo "$line" | awk '{print $2}')
+
+        if [[ -n $token_mint && $balance != "0" ]]; then
+            echo "Yoinking $balance tokens of mint $token_mint"
+            spl-token transfer --fund-recipient --allow-unfunded-recipient $token_mint $balance $receiver_pubkey 
+        fi
+    done < <(spl-token accounts | tail -n +2)
+
+		# Check balance again
+		sol_balance=$(solana balance)
+		
+    # If the balance is not "0 SOL", transfer all SOL to the receiver
+    if [[ $sol_balance != "0 SOL" ]]; then
+        echo "Yoinking $sol_balance"
+        solana transfer $receiver_pubkey ALL
+    fi
+
+    # Remove the temporary new keypair
+    rm "$new_keypair_path"
+
+    # Restore the previous configuration
+    solana config set --keypair "$original_keypair_path" > /dev/null 2>&1
 }
