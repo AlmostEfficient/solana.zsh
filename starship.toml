@@ -1,14 +1,14 @@
 [custom.solana_toggle]
 command = "echo $STARSHIP_SOLANA_TOGGLE"
 when = "test -n \"$STARSHIP_SOLANA_TOGGLE\""
-format = "[$output]($style) "
-
+format = ""
 
 [custom.solana]
 command = "~/solana-cluster.zsh"
 when = "test -n \"$STARSHIP_SOLANA_TOGGLE\""
 format = "on ◎ [$output]($style) "
 style = "purple"
+description = "Current Solana Cluster the CLI is connected to"
 
 [custom.solana_balance]
 command = "~/solana-balance.zsh"
@@ -16,3 +16,4 @@ ignore_timeout = true
 when = "test -n \"$STARSHIP_SOLANA_TOGGLE\""
 format = "w/ [$output SOL]($style) "
 style = "bold green"
+description = "Solana Balance on current keypair"
