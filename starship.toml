@@ -1,0 +1,18 @@
+[custom.solana_toggle]
+command = "echo $STARSHIP_SOLANA_TOGGLE"
+when = "test -n \"$STARSHIP_SOLANA_TOGGLE\""
+format = "[$output]($style) "
+
+
+[custom.solana]
+command = "~/solana-cluster.zsh"
+when = "test -n \"$STARSHIP_SOLANA_TOGGLE\""
+format = "on ◎ [$output]($style) "
+style = "purple"
+
+[custom.solana_balance]
+command = "~/solana-balance.zsh"
+ignore_timeout = true
+when = "test -n \"$STARSHIP_SOLANA_TOGGLE\""
+format = "w/ [$output SOL]($style) "
+style = "bold green"

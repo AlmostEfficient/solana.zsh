@@ -19,8 +19,20 @@ spd_() {
 
 # Misc
 alias sb="solana balance"
+alias scg="solana config get"
 alias sdev="solana config set --url devnet"
 alias slcl="solana config set --url localhost"
+
+# Enable solana starship prompt
+sol() {
+  if [[ -z "$STARSHIP_SOLANA_TOGGLE" ]]; then
+    export STARSHIP_SOLANA_TOGGLE="ON"
+    echo "Solana prompt enabled"
+  else
+    unset STARSHIP_SOLANA_TOGGLE
+    echo "Solana prompt disabled"
+  fi
+}
 
 function build_docs() { # Build Solana docs and start local server
 	ni &
